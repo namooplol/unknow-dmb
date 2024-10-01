@@ -2,6 +2,8 @@
  * Script for landing.ejs
  */
 // Requirements
+const axios = require('axios');
+
 const { URL }                 = require('url')
 const {
     MojangRestAPI,
@@ -195,7 +197,7 @@ const refreshMojangStatuses = async function(){
     
     greenCount = 0
     greyCount = 0
-
+    console.log(statuses)
     for(let i=0; i<statuses.length; i++){
         const service = statuses[i]
 
@@ -235,6 +237,100 @@ const refreshMojangStatuses = async function(){
     document.getElementById('mojang_status_icon').style.color = MojangRestAPI.statusToHex(status)
 }
 
+const DPCloudevstatusToHex = function(status) {
+    switch (status) {
+        case 'green':
+            return '#00FF00'; // Green
+        case 'yellow':
+            return '#FFFF00'; // Yellow
+        case 'red':
+            return '#FF0000'; // Red
+        case 'grey':
+            return '#808080'; // Grey
+        default:
+            return '#000000'; // Default to black for unknown statuses
+    }
+}
+
+const DPCloudevgetColorFromStatus = (status) => {
+    switch (status) {
+        case 200:
+            return 'green';
+        case 500:
+            return 'red';
+        case 429: // Example for too many requests
+        case 503: // Example for service unavailable
+            return 'yellow';
+        default:
+            return 'grey'; // Default for unexpected status codes
+    }
+};
+
+const refreshDPCloudevStatuses = async function(){
+    loggerLanding.info('Refreshing DPCloudev Statuses..')
+
+    let status = 'grey'
+    let tooltipNonEssentialHTML = ''
+    const servicesToInclude = ['API', 'CDN', 'Dashboard'];
+
+    const response = await axios.get("https://status.damp11113.xyz/")
+    console.log(response)
+    let statuses
+    if (response.status === 200) {
+        // Convert the data into the desired array format, filtering for specific services
+        statuses = servicesToInclude.map(serviceName => ({
+            service: serviceName,
+            status: DPCloudevgetColorFromStatus(response.data.Service[serviceName.toLowerCase()]),
+            name: serviceName // Assuming 'name' is the same as the 'service'
+        }));
+    } else {
+        loggerLanding.warn('Unable to refresh DPCloudev service status.')
+        statuses = [
+            { "service": "api", "status": "red", "name": "API" },
+            { "service": "cdn", "status": "red", "name": "CDN" },
+            { "service": "dashboard", "status": "red", "name": "Dashboard" }
+        ]
+    }
+    
+    greenCount = 0
+    greyCount = 0
+
+    
+    for (let i=0; i<statuses.length; i++){
+        const service = statuses[i]
+        console.log(service)
+
+        const tooltipHTML = `<div class="dpcloudevStatusContainer">
+            <span class="mojangStatusIcon" style="color: ${DPCloudevstatusToHex(service.status)};">&#8226;</span>
+            <span class="mojangStatusName">${service.name}</span>
+        </div>`
+        tooltipNonEssentialHTML += tooltipHTML
+        
+        if(service.status === 'yellow' && status !== 'red'){
+            status = 'yellow'
+        } else if(service.status === 'red'){
+            status = 'red'
+        } else {
+            if(service.status === 'grey'){
+                ++greyCount
+            }
+            ++greenCount
+        }
+    }
+
+    if(greenCount === statuses.length){
+        if(greyCount === statuses.length){
+            status = 'grey'
+        } else {
+            status = 'green'
+        }
+    }
+    
+    document.getElementById('dpcloudevStatusContainer').innerHTML = tooltipNonEssentialHTML
+    document.getElementById('DPCloudev_status_icon').style.color = MojangRestAPI.statusToHex(status)
+}
+
+
 const refreshServerStatus = async (fade = false) => {
     loggerLanding.info('Refreshing Server Status')
     const serv = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
@@ -267,10 +363,12 @@ const refreshServerStatus = async (fade = false) => {
 }
 
 refreshMojangStatuses()
+refreshDPCloudevStatuses()
 // Server Status is refreshed in uibinder.js on distributionIndexDone.
 
 // Refresh statuses every hour. The status page itself refreshes every day so...
 let mojangStatusListener = setInterval(() => refreshMojangStatuses(true), 60*60*1000)
+let DPCloudevStatusListener = setInterval(() => refreshDPCloudevStatuses(true), 60*60*1000)
 // Set refresh rate to once every 5 minutes.
 let serverStatusListener = setInterval(() => refreshServerStatus(true), 300000)
 
@@ -615,6 +713,7 @@ async function dlAsync(login = true) {
             setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
 
             // Init Discord Hook
+            /*
             if(distro.rawDistribution.discord != null && serv.rawServer.discord != null){
                 DiscordWrapper.initRPC(distro.rawDistribution.discord, serv.rawServer.discord)
                 hasRPC = true
@@ -625,6 +724,7 @@ async function dlAsync(login = true) {
                     proc = null
                 })
             }
+            */
 
         } catch(err) {
 

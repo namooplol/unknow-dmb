@@ -3223,7 +3223,7 @@ input:checked + .toggleSwitchSlider:before {
 }
 
 /* Icon which displays the status of the mojang services. */
-#mojang_status_icon {
+#mojang_status_icon, #DPCloudev_status_icon {
     font-size: 30px;
     color: #848484;
     margin-left: 15px;

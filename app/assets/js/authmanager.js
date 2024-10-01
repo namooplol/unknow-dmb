@@ -167,6 +167,57 @@ exports.addMojangAccount = async function(username, password) {
     }
 }
 
+const axios = require('axios');
+
+exports.addDPCloudevAccount = async function(username, password) {
+    try {
+        const response = await axios.post('https://api.damp11113.xyz/account/v3/login', {
+            username: username,
+            password: password
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log(response.data);
+        
+        if (response.data && response.data.session) {
+            const responseinfo = await axios.post('https://api.damp11113.xyz/account/v3/info', {
+                clientToken: response.data.clientToken,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log(responseinfo.data);
+
+            const ret = ConfigManager.addDPCloudevAuthAccount(
+                responseinfo.data.uuid, 
+                response.data.session, 
+                username, 
+                responseinfo.data.username
+            );
+            
+            if (ConfigManager.getClientToken() == null) {
+                ConfigManager.setClientToken(response.data.clientToken);
+            }
+            ConfigManager.save();
+            return ret;
+
+        } else {
+            return Promise.reject(mojangErrorDisplayable(response.data.error || MojangErrorCode.UNKNOWN));
+        }
+        
+    } catch (err) {
+        console.error(err);
+        return Promise.reject(mojangErrorDisplayable(MojangErrorCode.UNKNOWN));
+    }
+};
+
+
+
 const AUTH_MODE = { FULL: 0, MS_REFRESH: 1, MC_REFRESH: 2 }
 
 /**
@@ -278,6 +329,34 @@ exports.removeMojangAccount = async function(uuid){
         const authAcc = ConfigManager.getAuthAccount(uuid)
         const response = await MojangRestAPI.invalidate(authAcc.accessToken, ConfigManager.getClientToken())
         if(response.responseStatus === RestResponseStatus.SUCCESS) {
+            ConfigManager.removeAuthAccount(uuid)
+            ConfigManager.save()
+            return Promise.resolve()
+        } else {
+            log.error('Error while removing account', response.error)
+            return Promise.reject(response.error)
+        }
+    } catch (err){
+        log.error('Error while removing account', err)
+        return Promise.reject(err)
+    }
+}
+
+exports.removeDPCloudevAccount = async function(uuid){
+    try {
+        const authAcc = ConfigManager.getAuthAccount(uuid)
+        console.log(authAcc.accessToken)
+        console.log(ConfigManager.getClientToken())
+        const response = await axios.post('https://api.damp11113.xyz/account/v3/logout', {
+            session: authAcc.accessToken, 
+            clientToken: ConfigManager.getClientToken()
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.status === 200) {
             ConfigManager.removeAuthAccount(uuid)
             ConfigManager.save()
             return Promise.resolve()

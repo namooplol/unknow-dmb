@@ -349,6 +349,18 @@ exports.addMojangAuthAccount = function(uuid, accessToken, username, displayName
     return config.authenticationDatabase[uuid]
 }
 
+exports.addDPCloudevAuthAccount = function(uuid, accessToken, username, displayName){
+    config.selectedAccount = uuid
+    config.authenticationDatabase[uuid] = {
+        type: 'dpcloudev',
+        accessToken,
+        username: username.trim(),
+        uuid: uuid.trim(),
+        displayName: displayName.trim()
+    }
+    return config.authenticationDatabase[uuid]
+}
+
 /**
  * Update the tokens of an authenticated microsoft account.
  * 

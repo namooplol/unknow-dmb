@@ -39,10 +39,27 @@
     <%- include('overlay') %>
     <div id="loadingContainer">
         <div id="loadingContent">
-            <div id="loadSpinnerContainer">
-                <img id="loadCenterImage" src="assets/images/LoadingSeal.png">
-                <img id="loadSpinnerImage" class="rotating" src="assets/images/LoadingText.png">
-            </div>
+            <div class="spinner"></div>
+            <h3>Please wait...</h3>
+            <style>
+                .spinner {
+                    border: 8px solid rgba(0, 0, 0, 0);
+                    border-left-color: #fdd700b9;
+                    border-radius: 50%;
+                    width: 50px;
+                    height: 50px;
+                    animation: spin 1s linear infinite;
+                }
+
+                @keyframes spin {
+                    0% {
+                        transform: rotate(0deg);
+                    }
+                    100% {
+                        transform: rotate(360deg);
+                    }
+                }
+            </style>
         </div>
     </div>
 </body>
