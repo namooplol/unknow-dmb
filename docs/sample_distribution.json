@@ -224,7 +224,7 @@
                     "type": "ForgeMod",
                     "artifact": {
                         "size": 17376788,
-                         "MD5": "370f4f1804c93f498f31af8dac509605",
+                        "MD5": "370f4f1804c93f498f31af8dac509605",
                         "url": "http://mc.westeroscraft.com/WesterosCraftLauncher/prod-1.11.2/mods/WesterosBlocks.jar"
                     }
                 },

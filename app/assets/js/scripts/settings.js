@@ -635,13 +635,19 @@ function populateAuthAccounts(){
     let microsoftAuthAccountStr = ''
     let mojangAuthAccountStr = ''
 
+    
     authKeys.forEach((val) => {
         const acc = authAccounts[val]
+        let skinimage = ``
+
+        if (acc.type != "dpcloudev") {
+            skinimage = `<div class="settingsAuthAccountLeft">
+                <img class="settingsAuthAccountImage" alt="${acc.displayName}" src=https://mc-heads.net/body/${acc.uuid}/60">
+            </div>`
+        }
 
         const accHtml = `<div class="settingsAuthAccount" uuid="${acc.uuid}">
-            <div class="settingsAuthAccountLeft">
-                <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="https://mc-heads.net/body/${acc.uuid}/60">
-            </div>
+            ${skinimage}
             <div class="settingsAuthAccountRight">
                 <div class="settingsAuthAccountDetails">
                     <div class="settingsAuthAccountDetailPane">

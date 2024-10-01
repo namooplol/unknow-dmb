@@ -1,7 +1,7 @@
 # Custom Language File for Launcher Customizer
 
 [ejs.app]
-title = "Unknow DMB"
+title = "DMB"
 
 [ejs.landing]
 mediaGitHubURL = "https://git.damp11113.xyz/Mirror/unknow-dmb"
@@ -15,6 +15,6 @@ sourceGithubLink = "https://git.damp11113.xyz/Mirror/unknow-dmb"
 supportLink = "https://damp11113.xyz/donate"
 
 [ejs.welcome]
-welcomeHeader = "Welcome to Unknow-DMB Project"
+welcomeHeader = "Welcome to DMB Project"
 welcomeDescription = "Hello world!"
 welcomeDescCTA = "Hello world!"

@@ -1,0 +1,39 @@
+{
+    "version": "1.0.0",
+    "discord": {
+        "clientId": "1290669565231108106",
+        "smallImageText": "",
+        "smallImageKey": ""
+    },
+    "java": {
+        "adoptium": "https://adoptium.net/temurin/releases/?package=jdk&version=18",
+        "supported": ">=17",
+        "suggestedMajor": 18,
+        "ram": {
+            "recommended": 2048,
+            "minimum": 1024
+        }
+    },
+    "rss": "",
+    "servers": [
+        {
+            "id": "DMB",
+            "name": "DMB Client",
+            "description": "",
+            "icon": "",
+            "version": "1.0",
+            "address": "localhost",
+            "minecraftVersion": "1.20.1",
+            "discord": {
+                "shortId": "Example",
+                "largeImageText": "WesterosCraft Example Server",
+                "largeImageKey": "server-example"
+            },
+            "mainServer": true,
+            "autoconnect": true,
+            "modules": [
+                "Module Objects Here"
+            ]
+        }
+    ]
+}

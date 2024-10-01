@@ -1,5 +1,5 @@
 
-# Unknow-DMB Project Launcher
+# DMB Project Launcher
 Based on Helios Launcher
 
 ## Development

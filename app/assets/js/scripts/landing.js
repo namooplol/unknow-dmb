@@ -150,8 +150,12 @@ function updateSelectedAccount(authUser){
         if(authUser.displayName != null){
             username = authUser.displayName
         }
-        if(authUser.uuid != null){
-            document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
+        if (authUser.type != "dpcloudev") {
+            if (authUser.uuid != null){
+                document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
+            }
+        } else {
+            document.getElementById('avatarContainer').style.backgroundImage = ``
         }
     }
     user_text.innerHTML = username
@@ -713,7 +717,7 @@ async function dlAsync(login = true) {
             setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
 
             // Init Discord Hook
-            /*
+            
             if(distro.rawDistribution.discord != null && serv.rawServer.discord != null){
                 DiscordWrapper.initRPC(distro.rawDistribution.discord, serv.rawServer.discord)
                 hasRPC = true
@@ -724,7 +728,7 @@ async function dlAsync(login = true) {
                     proc = null
                 })
             }
-            */
+            
 
         } catch(err) {
 
