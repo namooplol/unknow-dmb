@@ -18,21 +18,40 @@
     "servers": [
         {
             "id": "DMB",
-            "name": "DMB Client",
-            "description": "",
+            "name": "DMB Server",
+            "description": "A best mc roleplay in Thailand",
             "icon": "",
             "version": "1.0",
             "address": "localhost",
             "minecraftVersion": "1.20.1",
             "discord": {
-                "shortId": "Example",
-                "largeImageText": "WesterosCraft Example Server",
-                "largeImageKey": "server-example"
+                "shortId": "Test",
+                "largeImageText": "",
+                "largeImageKey": ""
             },
             "mainServer": true,
             "autoconnect": true,
             "modules": [
-                "Module Objects Here"
+                
+            ]
+        },
+        {
+            "id": "dpg-milsim",
+            "name": "DPGame something...",
+            "description": "DPCloudev x DPGame (look at id in distro.json)",
+            "icon": "",
+            "version": "1.0",
+            "address": "localhost",
+            "minecraftVersion": "1.20.1",
+            "discord": {
+                "shortId": "Test",
+                "largeImageText": "",
+                "largeImageKey": ""
+            },
+            "mainServer": true,
+            "autoconnect": true,
+            "modules": [
+                
             ]
         }
     ]
