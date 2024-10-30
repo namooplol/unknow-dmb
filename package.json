@@ -1,18 +1,18 @@
 {
-  "name": "helioslauncher",
+  "name": "dmblauncher",
   "version": "2.2.1",
-  "productName": "Helios Launcher",
-  "description": "Modded Minecraft Launcher",
-  "author": "Daniel Scalzi (https://github.com/dscalzi/)",
-  "license": "UNLICENSED",
-  "homepage": "https://github.com/dscalzi/HeliosLauncher",
+  "productName": "DMB Launcher",
+  "description": "Modded Minecraft Launcher for DMB project",
+  "author": "Daniel Scalzi (https://github.com/dscalzi/), damp11113",
+  "license": "UNLICENSED/MIT (Some part of DPSoftware)",
+  "homepage": "https://damp11113.xyz",
   "bugs": {
     "url": "https://github.com/dscalzi/HeliosLauncher/issues"
   },
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "electron .",
+    "dev": "electron .",
     "dist": "electron-builder build",
     "dist:win": "npm run dist -- -w",
     "dist:mac": "npm run dist -- -m",

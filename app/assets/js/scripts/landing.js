@@ -1040,11 +1040,9 @@ document.addEventListener('keydown', (e) => {
  */
 function displayArticle(articleObject, index){
     newsArticleTitle.innerHTML = articleObject.title
-    newsArticleTitle.href = articleObject.link
     newsArticleAuthor.innerHTML = 'by ' + articleObject.author
     newsArticleDate.innerHTML = articleObject.date
-    newsArticleComments.innerHTML = articleObject.comments
-    newsArticleComments.href = articleObject.commentsLink
+    newsArticleFeedServerIcon.innerHTML = `<img src="${articleObject.feedIcon}" alt="icon of feed server" style="width: 50%; height: auto;">`
     newsArticleContentScrollable.innerHTML = '<div id="newsArticleContentWrapper"><div class="newsArticleSpacerTop"></div>' + articleObject.content + '<div class="newsArticleSpacerBot"></div></div>'
     Array.from(newsArticleContentScrollable.getElementsByClassName('bbCodeSpoilerButton')).forEach(v => {
         v.onclick = () => {
@@ -1060,71 +1058,71 @@ function displayArticle(articleObject, index){
  * Load news information from the RSS feed specified in the
  * distribution index.
  */
-async function loadNews(){
+async function loadNews() {
 
-    const distroData = await DistroAPI.getDistribution()
-    if(!distroData.rawDistribution.rss) {
-        loggerLanding.debug('No RSS feed provided.')
-        return null
+    const distroData = await DistroAPI.getDistribution();
+    if (!distroData.rawDistribution.rcf) {
+        loggerLanding.debug('No RCF feed provided.');
+        return null;
     }
 
     const promise = new Promise((resolve, reject) => {
-        
-        const newsFeed = distroData.rawDistribution.rss
-        const newsHost = new URL(newsFeed).origin + '/'
+
+        const newsFeed = distroData.rawDistribution.rcf;
         $.ajax({
             url: newsFeed,
+            dataType: 'json', // Specify that we expect JSON data
             success: (data) => {
-                const items = $(data).find('item')
-                const articles = []
+                const feedInfo = data.info; // General feed info
+                const items = data.feeds; // Content items (array)
+                const articles = [];
+                const feed_server_icon_url = data.image.icon;
 
-                for(let i=0; i<items.length; i++){
-                // JQuery Element
-                    const el = $(items[i])
+                for (let i = 0; i < items.length; i++) {
+                    const el = items[i];
 
-                    // Resolve date.
-                    const date = new Date(el.find('pubDate').text()).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'})
+                    // Resolve date
+                    const date = new Date(el.public_date * 1000).toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'
+                    });
 
-                    // Resolve comments.
-                    let comments = el.find('slash\\:comments').text() || '0'
-                    comments = comments + ' Comment' + (comments === '1' ? '' : 's')
+                    // Resolve comments count if available in insights
+                    let comments = el.insights?.comments?.count || '0';
+                    comments = comments + ' Comment' + (comments === '1' ? '' : 's');
 
-                    // Fix relative links in content.
-                    let content = el.find('content\\:encoded').text()
-                    let regex = /src="(?!http:\/\/|https:\/\/)(.+?)"/g
-                    let matches
-                    while((matches = regex.exec(content))){
-                        content = content.replace(`"${matches[1]}"`, `"${newsHost + matches[1]}"`)
-                    }
+                    // Resolve content (if summary is provided in text or HTML)
+                    let content = el.summary?.content || "No summary available";
 
-                    let link   = el.find('link').text()
-                    let title  = el.find('title').text()
-                    let author = el.find('dc\\:creator').text()
+                    // Handle images if available (like in RSS feeds)
+                    let banner = el.image?.banner || '';
+                    let footer = el.image?.footer || '';
 
-                    // Generate article.
-                    articles.push(
-                        {
-                            link,
-                            title,
-                            date,
-                            author,
-                            content,
-                            comments,
-                            commentsLink: link + '#comments'
-                        }
-                    )
+                    // Construct article object
+                    let article = {
+                        title: el.title,
+                        date: date,
+                        author: el.authors?.[0]?.name || 'Unknown Author',
+                        content: content,
+                        comments: comments,
+                        feedIcon: feed_server_icon_url || '',
+                        banner: banner,
+                        footer: footer
+                    };
+
+                    articles.push(article);
                 }
+
                 resolve({
                     articles
-                })
+                });
             },
             timeout: 2500
         }).catch(err => {
             resolve({
                 articles: null
-            })
-        })
-    })
+            });
+        });
+    });
 
-    return await promise
+    return await promise;
 }

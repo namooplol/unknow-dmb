@@ -14,7 +14,7 @@
             "minimum": 1024
         }
     },
-    "rss": "",
+    "rcf": "https://api.damp11113.xyz/feed/getfeed?page=1&limit=10&service=dmb_mc",
     "servers": [
         {
             "id": "DMB",
