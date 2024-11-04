@@ -41,17 +41,20 @@
             "version": "1.0",
             "address": "localhost:25505",
             "pre_command": {
-                "win32": [
-                    "powershell -Command \"if (-not (Test-Path '<%= launcherDir %>\\cloudflared.exe')) { Invoke-WebRequest -Uri https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile '<%= launcherDir %>\\cloudflared.exe' }\"",
-                    "\"<%= launcherDir %>\\cloudflared.exe\" access tcp --hostname minecraft.damp11113.xyz --url localhost:25505"
+                "windows": [
+                    "powershell -Command \"Invoke-WebRequest -Uri https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe\"",
+                    "move cloudflared.exe \"C:\\Program Files\\Cloudflare\\cloudflared.exe\"",
+                    "C:\\Program Files\\Cloudflare\\cloudflared.exe access tcp --hostname mcmilsim.damp11113.xyz --url localhost:25505"
                 ],
-                "darwin": [
-                    "if [ ! -f /usr/local/bin/cloudflared ]; then brew install cloudflare/cloudflare/cloudflared; fi",
-                    "cloudflared access tcp --hostname minecraft.damp11113.xyz --url localhost:25505"
+                "mac": [
+                    "brew install cloudflare/cloudflare/cloudflared",
+                    "cloudflared access tcp --hostname mcmilsim.damp11113.xyz --url localhost:25505"
                 ],
                 "linux": [
-                    "if [ ! -f '<%= launcherDir %>/cloudflared' ]; then wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O '<%= launcherDir %>/cloudflared'; chmod +x '<%= launcherDir %>/tools/cloudflared'; fi",
-                    "<%= launcherDir %>/cloudflared access tcp --hostname minecraft.damp11113.xyz --url localhost:25505"
+                    "wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64",
+                    "chmod +x cloudflared-linux-amd64",
+                    "sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared",
+                    "cloudflared access tcp --hostname mcmilsim.damp11113.xyz --url localhost:25505"
                 ]
             },
             "minecraftVersion": "1.20.1",

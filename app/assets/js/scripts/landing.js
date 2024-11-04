@@ -1,8 +1,11 @@
-/**
+/*
  * Script for landing.ejs
  */
 // Requirements
 const axios = require('axios');
+const { exec } = require('child_process');
+const _ = require('lodash');
+const fs = require('fs');
 
 const { URL }                 = require('url')
 const {
@@ -547,6 +550,44 @@ const GAME_JOINED_REGEX = /\[.+\]: Sound engine started/
 const GAME_LAUNCH_REGEX = /^\[.+\]: (?:MinecraftForge .+ Initialized|ModLauncher .+ starting: .+|Loading Minecraft .+ with Fabric Loader .+)$/
 const MIN_LINGER = 5000
 
+function waitForAllow(commandlist) {
+    const overlayDetail = document.getElementById("overlayDetail");
+    overlayDetail.style.display = "block"; // Make the textarea visible
+    overlayDetail.value = ""; // Clear any existing content
+
+    commandlist.forEach((command) => {
+        overlayDetail.value += command + "\n"; // Add each command to a new line in the textarea
+    });
+
+    setOverlayContent(
+        Lang.queryJS('landing.pre_command.warningTitle'),
+        Lang.queryJS('landing.pre_command.warningText'),
+        Lang.queryJS('landing.pre_command.allow'),
+        Lang.queryJS('landing.pre_command.deny')
+    )
+    setOverlayHandler(null);
+    toggleOverlay(true, true, 'overlayContent', true);
+    toggleLaunchArea(false);
+
+    return new Promise((resolve) => {
+        const trueButton = document.getElementById('overlayAcknowledge');
+        const falseButton = document.getElementById('overlayDismiss');
+
+        const handleChoice = (choice) => {
+            resolve(choice);
+            // Remove event listeners after choice is made
+            trueButton.removeEventListener('click', handleTrue);
+            falseButton.removeEventListener('click', handleFalse);
+        };
+
+        const handleTrue = () => handleChoice(true);
+        const handleFalse = () => handleChoice(false);
+
+        trueButton.addEventListener('click', handleTrue);
+        falseButton.addEventListener('click', handleFalse);
+    });
+}
+
 async function dlAsync(login = true) {
 
     // Login parameter is temporary for debug purposes. Allows testing the validation/downloads without
@@ -574,6 +615,70 @@ async function dlAsync(login = true) {
             loggerLanding.error('You must be logged into an account.')
             return
         }
+    }
+    // check if has pre command
+
+    let platform = os.platform()
+    let allow_pre_command;
+
+    let pre_command = serv?.rawServer?.pre_command?.[platform]
+
+    if (pre_command !== undefined) {
+        allow_pre_command = await waitForAllow(pre_command);
+        toggleOverlay(false)
+    } else {
+        allow_pre_command = false;
+    }
+
+    console.log(allow_pre_command);
+
+    if (allow_pre_command) {
+        // Initialize an array to hold the compiled commands
+        const commandsToExecute = [];
+
+        if (platform === "win32") {
+            commandsToExecute.push("@echo off");
+        } 
+
+        pre_command.forEach((commandTemplate) => {
+            // Compile the command template
+            const compiled = _.template(commandTemplate);
+            console.log(ConfigManager.launcherDir);
+            const command = compiled({ launcherDir: ConfigManager.getLauncherDirectory() });
+
+            // Push the compiled command to the array
+            commandsToExecute.push(command);
+        });
+
+        commandsToExecute.push("exit");
+
+        // Define a temporary file path
+        let tempFilePath;
+        if (platform === "win32") {
+            tempFilePath = path.join(os.tmpdir(), 'temp_command.bat'); // Windows batch file
+        } else {
+            tempFilePath = path.join(os.tmpdir(), 'temp_command.sh'); // Unix shell script
+        }
+
+        // Create the command file and write all commands into it
+        fs.writeFileSync(tempFilePath, commandsToExecute.join('\n'));
+
+        // Make the file executable on Unix-based systems
+        if (platform === 'linux' || platform === 'darwin') {
+            execSync(`chmod +x ${tempFilePath}`);
+        }
+
+        // Execute the temporary command file based on the OS
+        if (platform === 'win32') {
+            exec(`start cmd.exe /k "${tempFilePath}"`, { stdio: 'inherit' });
+        } else if (platform === 'darwin') {
+            exec(`open -a Terminal "${tempFilePath}"`, { stdio: 'inherit' });
+        } else if (platform === 'linux') {
+            exec(`xterm -e "${tempFilePath}"`, { stdio: 'inherit' });
+        }
+
+        // Optionally, delete the temporary file after execution
+        // fs.unlinkSync(tempFilePath);
     }
 
     setLaunchDetails(Lang.queryJS('landing.dlAsync.pleaseWait'))

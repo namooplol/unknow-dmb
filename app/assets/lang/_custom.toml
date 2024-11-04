@@ -4,11 +4,11 @@
 title = "DMB"
 
 [ejs.landing]
-mediaGitHubURL = "https://git.damp11113.xyz/Mirror/unknow-dmb"
+mediaGitHubURL = "https://damp11113.xyz/"
 mediaTwitterURL = "#"
 mediaInstagramURL = "#"
 mediaYouTubeURL = "#"
-mediaDiscordURL = "https://discord.gg/zNWUXdt"
+mediaDiscordURL = "#"
 
 [ejs.settings]
 sourceGithubLink = "https://git.damp11113.xyz/Mirror/unknow-dmb"

@@ -155,8 +155,14 @@ desc = "An unknown error has occurred. Please see the console for details."
 [js.landing.launch]
 pleaseWait = "Please wait.."
 failureTitle = "Error During Launch"
-failureText = "See console (CTRL + Shift + i) for more details."
+failureText = "Please contact to support at damp11113.xyz/support"
 okay = "Okay"
+
+[js.landing.pre_command]
+warningTitle = "Warning: Command Execution Required"
+warningText = "Please ensure that the command you are about to execute is safe and expected. Unrecognized commands may pose a security risk."
+allow = "Allow"
+deny = "Deny"
 
 [js.landing.selectedAccount]
 noAccountSelected = "No Account Selected"
