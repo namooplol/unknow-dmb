@@ -65,7 +65,7 @@ function bindOverlayKeys(state, content, dismissable){
  * @param {boolean} dismissable Optional. True to show the dismiss option, otherwise false.
  * @param {string} content Optional. The content div to be shown.
  */
-function toggleOverlay(toggleState, dismissable = false, content = 'overlayContent'){
+function toggleOverlay(toggleState, dismissable = false, content = 'overlayContent', disdetail=false){
     if(toggleState == null){
         toggleState = !document.getElementById('main').hasAttribute('overlay')
     }
@@ -85,6 +85,12 @@ function toggleOverlay(toggleState, dismissable = false, content = 'overlayConte
         } else {
             $('#overlayDismiss').hide()
         }
+        if(disdetail){
+            $('#overlayDetail').show()
+        } else {
+            $('#overlayDetail').hide()
+        }
+
         $('#overlayContainer').fadeIn({
             duration: 250,
             start: () => {
@@ -112,6 +118,12 @@ function toggleOverlay(toggleState, dismissable = false, content = 'overlayConte
                 } else {
                     $('#overlayDismiss').hide()
                 }
+
+                if(disdetail){
+                    $('#overlayDetail').show()
+                } else {
+                    $('#overlayDetail').hide()
+                }        
             }
         })
     }

@@ -3223,7 +3223,7 @@ input:checked + .toggleSwitchSlider:before {
 }
 
 /* Icon which displays the status of the mojang services. */
-#mojang_status_icon {
+#mojang_status_icon, #DPCloudev_status_icon {
     font-size: 30px;
     color: #848484;
     margin-left: 15px;
@@ -3570,6 +3570,16 @@ input:checked + .toggleSwitchSlider:before {
     font-weight: bold;
     -webkit-user-select: initial;
 }
+
+#overlayDetail {
+    width: 100%;
+    height: 100px; /* Adjust height as needed */
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
 
 /* Div which contains action buttons. */
 #overlayActionContainer {

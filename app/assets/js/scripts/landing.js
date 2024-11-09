@@ -1,7 +1,12 @@
-/**
+/*
  * Script for landing.ejs
  */
 // Requirements
+const axios = require('axios');
+const { exec } = require('child_process');
+const _ = require('lodash');
+const fs = require('fs');
+
 const { URL }                 = require('url')
 const {
     MojangRestAPI,
@@ -148,8 +153,12 @@ function updateSelectedAccount(authUser){
         if(authUser.displayName != null){
             username = authUser.displayName
         }
-        if(authUser.uuid != null){
-            document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
+        if (authUser.type != "dpcloudev") {
+            if (authUser.uuid != null){
+                document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
+            }
+        } else {
+            document.getElementById('avatarContainer').style.backgroundImage = ``
         }
     }
     user_text.innerHTML = username
@@ -195,7 +204,7 @@ const refreshMojangStatuses = async function(){
     
     greenCount = 0
     greyCount = 0
-
+    console.log(statuses)
     for(let i=0; i<statuses.length; i++){
         const service = statuses[i]
 
@@ -235,6 +244,100 @@ const refreshMojangStatuses = async function(){
     document.getElementById('mojang_status_icon').style.color = MojangRestAPI.statusToHex(status)
 }
 
+const DPCloudevstatusToHex = function(status) {
+    switch (status) {
+        case 'green':
+            return '#00FF00'; // Green
+        case 'yellow':
+            return '#FFFF00'; // Yellow
+        case 'red':
+            return '#FF0000'; // Red
+        case 'grey':
+            return '#808080'; // Grey
+        default:
+            return '#000000'; // Default to black for unknown statuses
+    }
+}
+
+const DPCloudevgetColorFromStatus = (status) => {
+    switch (status) {
+        case 200:
+            return 'green';
+        case 500:
+            return 'red';
+        case 429: // Example for too many requests
+        case 503: // Example for service unavailable
+            return 'yellow';
+        default:
+            return 'grey'; // Default for unexpected status codes
+    }
+};
+
+const refreshDPCloudevStatuses = async function(){
+    loggerLanding.info('Refreshing DPCloudev Statuses..')
+
+    let status = 'grey'
+    let tooltipNonEssentialHTML = ''
+    const servicesToInclude = ['API', 'CDN', 'Dashboard'];
+
+    const response = await axios.get("https://status.damp11113.xyz/")
+    console.log(response)
+    let statuses
+    if (response.status === 200) {
+        // Convert the data into the desired array format, filtering for specific services
+        statuses = servicesToInclude.map(serviceName => ({
+            service: serviceName,
+            status: DPCloudevgetColorFromStatus(response.data.Service[serviceName.toLowerCase()]),
+            name: serviceName // Assuming 'name' is the same as the 'service'
+        }));
+    } else {
+        loggerLanding.warn('Unable to refresh DPCloudev service status.')
+        statuses = [
+            { "service": "api", "status": "red", "name": "API" },
+            { "service": "cdn", "status": "red", "name": "CDN" },
+            { "service": "dashboard", "status": "red", "name": "Dashboard" }
+        ]
+    }
+    
+    greenCount = 0
+    greyCount = 0
+
+    
+    for (let i=0; i<statuses.length; i++){
+        const service = statuses[i]
+        console.log(service)
+
+        const tooltipHTML = `<div class="dpcloudevStatusContainer">
+            <span class="mojangStatusIcon" style="color: ${DPCloudevstatusToHex(service.status)};">&#8226;</span>
+            <span class="mojangStatusName">${service.name}</span>
+        </div>`
+        tooltipNonEssentialHTML += tooltipHTML
+        
+        if(service.status === 'yellow' && status !== 'red'){
+            status = 'yellow'
+        } else if(service.status === 'red'){
+            status = 'red'
+        } else {
+            if(service.status === 'grey'){
+                ++greyCount
+            }
+            ++greenCount
+        }
+    }
+
+    if(greenCount === statuses.length){
+        if(greyCount === statuses.length){
+            status = 'grey'
+        } else {
+            status = 'green'
+        }
+    }
+    
+    document.getElementById('dpcloudevStatusContainer').innerHTML = tooltipNonEssentialHTML
+    document.getElementById('DPCloudev_status_icon').style.color = MojangRestAPI.statusToHex(status)
+}
+
+
 const refreshServerStatus = async (fade = false) => {
     loggerLanding.info('Refreshing Server Status')
     const serv = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
@@ -267,10 +370,12 @@ const refreshServerStatus = async (fade = false) => {
 }
 
 refreshMojangStatuses()
+refreshDPCloudevStatuses()
 // Server Status is refreshed in uibinder.js on distributionIndexDone.
 
 // Refresh statuses every hour. The status page itself refreshes every day so...
 let mojangStatusListener = setInterval(() => refreshMojangStatuses(true), 60*60*1000)
+let DPCloudevStatusListener = setInterval(() => refreshDPCloudevStatuses(true), 60*60*1000)
 // Set refresh rate to once every 5 minutes.
 let serverStatusListener = setInterval(() => refreshServerStatus(true), 300000)
 
@@ -445,6 +550,44 @@ const GAME_JOINED_REGEX = /\[.+\]: Sound engine started/
 const GAME_LAUNCH_REGEX = /^\[.+\]: (?:MinecraftForge .+ Initialized|ModLauncher .+ starting: .+|Loading Minecraft .+ with Fabric Loader .+)$/
 const MIN_LINGER = 5000
 
+function waitForAllow(commandlist) {
+    const overlayDetail = document.getElementById("overlayDetail");
+    overlayDetail.style.display = "block"; // Make the textarea visible
+    overlayDetail.value = ""; // Clear any existing content
+
+    commandlist.forEach((command) => {
+        overlayDetail.value += command + "\n"; // Add each command to a new line in the textarea
+    });
+
+    setOverlayContent(
+        Lang.queryJS('landing.pre_command.warningTitle'),
+        Lang.queryJS('landing.pre_command.warningText'),
+        Lang.queryJS('landing.pre_command.allow'),
+        Lang.queryJS('landing.pre_command.deny')
+    )
+    setOverlayHandler(null);
+    toggleOverlay(true, true, 'overlayContent', true);
+    toggleLaunchArea(false);
+
+    return new Promise((resolve) => {
+        const trueButton = document.getElementById('overlayAcknowledge');
+        const falseButton = document.getElementById('overlayDismiss');
+
+        const handleChoice = (choice) => {
+            resolve(choice);
+            // Remove event listeners after choice is made
+            trueButton.removeEventListener('click', handleTrue);
+            falseButton.removeEventListener('click', handleFalse);
+        };
+
+        const handleTrue = () => handleChoice(true);
+        const handleFalse = () => handleChoice(false);
+
+        trueButton.addEventListener('click', handleTrue);
+        falseButton.addEventListener('click', handleFalse);
+    });
+}
+
 async function dlAsync(login = true) {
 
     // Login parameter is temporary for debug purposes. Allows testing the validation/downloads without
@@ -472,6 +615,70 @@ async function dlAsync(login = true) {
             loggerLanding.error('You must be logged into an account.')
             return
         }
+    }
+    // check if has pre command
+
+    let platform = os.platform()
+    let allow_pre_command;
+
+    let pre_command = serv?.rawServer?.pre_command?.[platform]
+
+    if (pre_command !== undefined) {
+        allow_pre_command = await waitForAllow(pre_command);
+        toggleOverlay(false)
+    } else {
+        allow_pre_command = false;
+    }
+
+    console.log(allow_pre_command);
+
+    if (allow_pre_command) {
+        // Initialize an array to hold the compiled commands
+        const commandsToExecute = [];
+
+        if (platform === "win32") {
+            commandsToExecute.push("@echo off");
+        } 
+
+        pre_command.forEach((commandTemplate) => {
+            // Compile the command template
+            const compiled = _.template(commandTemplate);
+            console.log(ConfigManager.launcherDir);
+            const command = compiled({ launcherDir: ConfigManager.getLauncherDirectory() });
+
+            // Push the compiled command to the array
+            commandsToExecute.push(command);
+        });
+
+        commandsToExecute.push("exit");
+
+        // Define a temporary file path
+        let tempFilePath;
+        if (platform === "win32") {
+            tempFilePath = path.join(os.tmpdir(), 'temp_command.bat'); // Windows batch file
+        } else {
+            tempFilePath = path.join(os.tmpdir(), 'temp_command.sh'); // Unix shell script
+        }
+
+        // Create the command file and write all commands into it
+        fs.writeFileSync(tempFilePath, commandsToExecute.join('\n'));
+
+        // Make the file executable on Unix-based systems
+        if (platform === 'linux' || platform === 'darwin') {
+            execSync(`chmod +x ${tempFilePath}`);
+        }
+
+        // Execute the temporary command file based on the OS
+        if (platform === 'win32') {
+            exec(`start cmd.exe /k "${tempFilePath}"`, { stdio: 'inherit' });
+        } else if (platform === 'darwin') {
+            exec(`open -a Terminal "${tempFilePath}"`, { stdio: 'inherit' });
+        } else if (platform === 'linux') {
+            exec(`xterm -e "${tempFilePath}"`, { stdio: 'inherit' });
+        }
+
+        // Optionally, delete the temporary file after execution
+        // fs.unlinkSync(tempFilePath);
     }
 
     setLaunchDetails(Lang.queryJS('landing.dlAsync.pleaseWait'))
@@ -615,6 +822,7 @@ async function dlAsync(login = true) {
             setLaunchDetails(Lang.queryJS('landing.dlAsync.doneEnjoyServer'))
 
             // Init Discord Hook
+            
             if(distro.rawDistribution.discord != null && serv.rawServer.discord != null){
                 DiscordWrapper.initRPC(distro.rawDistribution.discord, serv.rawServer.discord)
                 hasRPC = true
@@ -625,6 +833,7 @@ async function dlAsync(login = true) {
                     proc = null
                 })
             }
+            
 
         } catch(err) {
 
@@ -936,11 +1145,9 @@ document.addEventListener('keydown', (e) => {
  */
 function displayArticle(articleObject, index){
     newsArticleTitle.innerHTML = articleObject.title
-    newsArticleTitle.href = articleObject.link
     newsArticleAuthor.innerHTML = 'by ' + articleObject.author
     newsArticleDate.innerHTML = articleObject.date
-    newsArticleComments.innerHTML = articleObject.comments
-    newsArticleComments.href = articleObject.commentsLink
+    newsArticleFeedServerIcon.innerHTML = `<img src="${articleObject.feedIcon}" alt="icon of feed server" style="width: 50%; height: auto;">`
     newsArticleContentScrollable.innerHTML = '<div id="newsArticleContentWrapper"><div class="newsArticleSpacerTop"></div>' + articleObject.content + '<div class="newsArticleSpacerBot"></div></div>'
     Array.from(newsArticleContentScrollable.getElementsByClassName('bbCodeSpoilerButton')).forEach(v => {
         v.onclick = () => {
@@ -956,71 +1163,71 @@ function displayArticle(articleObject, index){
  * Load news information from the RSS feed specified in the
  * distribution index.
  */
-async function loadNews(){
+async function loadNews() {
 
-    const distroData = await DistroAPI.getDistribution()
-    if(!distroData.rawDistribution.rss) {
-        loggerLanding.debug('No RSS feed provided.')
-        return null
+    const distroData = await DistroAPI.getDistribution();
+    if (!distroData.rawDistribution.rcf) {
+        loggerLanding.debug('No RCF feed provided.');
+        return null;
     }
 
     const promise = new Promise((resolve, reject) => {
-        
-        const newsFeed = distroData.rawDistribution.rss
-        const newsHost = new URL(newsFeed).origin + '/'
+
+        const newsFeed = distroData.rawDistribution.rcf;
         $.ajax({
             url: newsFeed,
+            dataType: 'json', // Specify that we expect JSON data
             success: (data) => {
-                const items = $(data).find('item')
-                const articles = []
+                const feedInfo = data.info; // General feed info
+                const items = data.feeds; // Content items (array)
+                const articles = [];
+                const feed_server_icon_url = data.image.icon;
 
-                for(let i=0; i<items.length; i++){
-                // JQuery Element
-                    const el = $(items[i])
+                for (let i = 0; i < items.length; i++) {
+                    const el = items[i];
 
-                    // Resolve date.
-                    const date = new Date(el.find('pubDate').text()).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'})
+                    // Resolve date
+                    const date = new Date(el.public_date * 1000).toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric'
+                    });
 
-                    // Resolve comments.
-                    let comments = el.find('slash\\:comments').text() || '0'
-                    comments = comments + ' Comment' + (comments === '1' ? '' : 's')
+                    // Resolve comments count if available in insights
+                    let comments = el.insights?.comments?.count || '0';
+                    comments = comments + ' Comment' + (comments === '1' ? '' : 's');
 
-                    // Fix relative links in content.
-                    let content = el.find('content\\:encoded').text()
-                    let regex = /src="(?!http:\/\/|https:\/\/)(.+?)"/g
-                    let matches
-                    while((matches = regex.exec(content))){
-                        content = content.replace(`"${matches[1]}"`, `"${newsHost + matches[1]}"`)
-                    }
+                    // Resolve content (if summary is provided in text or HTML)
+                    let content = el.summary?.content || "No summary available";
 
-                    let link   = el.find('link').text()
-                    let title  = el.find('title').text()
-                    let author = el.find('dc\\:creator').text()
+                    // Handle images if available (like in RSS feeds)
+                    let banner = el.image?.banner || '';
+                    let footer = el.image?.footer || '';
 
-                    // Generate article.
-                    articles.push(
-                        {
-                            link,
-                            title,
-                            date,
-                            author,
-                            content,
-                            comments,
-                            commentsLink: link + '#comments'
-                        }
-                    )
+                    // Construct article object
+                    let article = {
+                        title: el.title,
+                        date: date,
+                        author: el.authors?.[0]?.name || 'Unknown Author',
+                        content: content,
+                        comments: comments,
+                        feedIcon: feed_server_icon_url || '',
+                        banner: banner,
+                        footer: footer
+                    };
+
+                    articles.push(article);
                 }
+
                 resolve({
                     articles
-                })
+                });
             },
             timeout: 2500
         }).catch(err => {
             resolve({
                 articles: null
-            })
-        })
-    })
+            });
+        });
+    });
 
-    return await promise
+    return await promise;
 }

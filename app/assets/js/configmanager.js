@@ -5,11 +5,12 @@ const path = require('path')
 
 const logger = LoggerUtil.getLogger('ConfigManager')
 
-const sysRoot = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME)
-
-const dataPath = path.join(sysRoot, '.helioslauncher')
-
+// Use Electron's 'userData' path directly for dataPath
 const launcherDir = require('@electron/remote').app.getPath('userData')
+const dataPath = path.join(launcherDir, '.minecraft')
+
+logger.info('Data path is set to:', dataPath)
+
 
 /**
  * Retrieve the absolute path of the launcher directory.
@@ -341,6 +342,18 @@ exports.addMojangAuthAccount = function(uuid, accessToken, username, displayName
     config.selectedAccount = uuid
     config.authenticationDatabase[uuid] = {
         type: 'mojang',
+        accessToken,
+        username: username.trim(),
+        uuid: uuid.trim(),
+        displayName: displayName.trim()
+    }
+    return config.authenticationDatabase[uuid]
+}
+
+exports.addDPCloudevAuthAccount = function(uuid, accessToken, username, displayName){
+    config.selectedAccount = uuid
+    config.authenticationDatabase[uuid] = {
+        type: 'dpcloudev',
         accessToken,
         username: username.trim(),
         uuid: uuid.trim(),

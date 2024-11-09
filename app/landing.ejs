@@ -12,9 +12,11 @@
             <div id="rightContainer">
                 <div id="user_content">
                     <span id="user_text"><%- lang('landing.usernamePlaceholder') %></span>
+                    
                     <div id="avatarContainer">
                         <button id="avatarOverlay"><%- lang('landing.usernameEditButton') %></button>
                     </div>
+                    -
                 </div>
                 <div id="mediaContent">
                     <div id="internalMedia">
@@ -118,6 +120,17 @@
                             </div>
                         </div>
                     </div>
+                    <div class="bot_divider"></div>
+                    <div id="mojangStatusWrapper">
+                        <span class="bot_label">DPClOUDEV STATUS</span>
+                        <span id="DPCloudev_status_icon">&#8226;</span>
+                        <div id="mojangStatusTooltip">
+                            <div id="mojangStatusTooltipTitle"><%- lang('landing.mojangStatusTooltipTitle') %></div>
+                            <div id="dpcloudevStatusContainer">
+                                <!-- DPCloudev services are populated here. -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -162,17 +175,18 @@
         <div id="newsContent" article="-1" style="display: none;">
             <div id="newsStatusContainer">
                 <div id="newsStatusContent">
+                    <div id="newsArticleFeedServerIcon" style="display: flex; justify-content: flex-end; align-items: flex-end;"></div>
+                    <br>
                     <div id="newsTitleContainer">
-                        <a id="newsArticleTitle" href="#">Lorem Ipsum</a>
+                        <a id="newsArticleTitle">N/A</a>
                     </div>
                     <div id="newsMetaContainer">
                         <div id="newsArticleDateWrapper">
-                            <span id="newsArticleDate">Mar 15, 44 BC, 9:14 AM</span>
+                            <span id="newsArticleDate">N/A</span>
                         </div>
                         <div id="newsArticleAuthorWrapper">
-                            <span id="newsArticleAuthor">by Cicero</span>
+                            <span id="newsArticleAuthor">N/A</span>
                         </div>
-                        <a href="#" id="newsArticleComments">0 Comments</a>
                     </div>
                 </div>
                 <div id="newsNavigationContainer">

@@ -1,0 +1,71 @@
+{
+    "version": "1.0.0",
+    "discord": {
+        "clientId": "1290669565231108106",
+        "smallImageText": "",
+        "smallImageKey": ""
+    },
+    "java": {
+        "adoptium": "https://adoptium.net/temurin/releases/?package=jdk&version=18",
+        "supported": ">=17",
+        "suggestedMajor": 18,
+        "ram": {
+            "recommended": 2048,
+            "minimum": 1024
+        }
+    },
+    "rcf": "https://api.damp11113.xyz/feed/getfeed?page=1&limit=10&service=dmb_mc",
+    "servers": [
+        {
+            "id": "DMB",
+            "name": "DMB Server",
+            "description": "A best mc roleplay in Thailand",
+            "icon": "",
+            "version": "1.0",
+            "address": "localhost",
+            "minecraftVersion": "1.20.1",
+            "discord": {
+                "shortId": "Test",
+                "largeImageText": "",
+                "largeImageKey": ""
+            },
+            "mainServer": true,
+            "autoconnect": true,
+            "modules": []
+        },
+        {
+            "id": "dpg-milsim",
+            "name": "DPGame milsim",
+            "description": "Noting just test!",
+            "icon": "",
+            "version": "1.0",
+            "address": "localhost:25505",
+            "pre_command": {
+                "windows": [
+                    "powershell -Command \"Invoke-WebRequest -Uri https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe\"",
+                    "move cloudflared.exe \"C:\\Program Files\\Cloudflare\\cloudflared.exe\"",
+                    "C:\\Program Files\\Cloudflare\\cloudflared.exe access tcp --hostname mcmilsim.damp11113.xyz --url localhost:25505"
+                ],
+                "mac": [
+                    "brew install cloudflare/cloudflare/cloudflared",
+                    "cloudflared access tcp --hostname mcmilsim.damp11113.xyz --url localhost:25505"
+                ],
+                "linux": [
+                    "wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64",
+                    "chmod +x cloudflared-linux-amd64",
+                    "sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared",
+                    "cloudflared access tcp --hostname mcmilsim.damp11113.xyz --url localhost:25505"
+                ]
+            },
+            "minecraftVersion": "1.20.1",
+            "discord": {
+                "shortId": "Test",
+                "largeImageText": "",
+                "largeImageKey": ""
+            },
+            "mainServer": true,
+            "autoconnect": true,
+            "modules": []
+        }
+    ]
+}
